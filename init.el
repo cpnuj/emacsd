@@ -7,6 +7,9 @@
 (tool-bar-mode -1)
 (fringe-mode -1)
 (toggle-scroll-bar -1)
+;; (global-hl-line-mode 1)
+(setq scroll-step 1)
+(setq scroll-conservatively  10000)
 
 (setq auto-save-default nil)
 (setq make-backup-files nil)
@@ -38,15 +41,27 @@
   (package-install pkg))))
 
 ;; Find Executable Path on OS X
-(when (memq window-system '(mac ns))
-  (exec-path-from-shell-initialize))
+;; when (memq window-system '(mac ns))
+;;  (exec-path-from-shell-initialize)
 
 ;; Open some modes
-
 (evil-mode 1)
 
+;; helm configuration
 (global-set-key (kbd "M-x") 'helm-M-x)
 (global-set-key (kbd "M-p") 'helm-find-files)
+(add-hook 'helm-after-initialize-hook
+          (lambda()
+            (define-key helm-map (kbd "TAB") #'helm-execute-persistent-action)
+            (define-key helm-map (kbd "<tab>") #'helm-execute-persistent-action)
+            (define-key helm-map (kbd "C-z") #'helm-select-action)
+            (define-key helm-buffer-map (kbd "ESC") 'helm-keyboard-quit)
+            (define-key helm-M-x-map (kbd "ESC") 'helm-keyboard-quit)
+            (define-key helm-find-files-map (kbd "ESC") 'helm-keyboard-quit)
+            (define-key helm-map (kbd "ESC") 'helm-keyboard-quit)))
+
+;; xref configuration
+(global-set-key (kbd "M-<right>") 'xref-find-definitions)
 
 ;; Load go-mode and Eglot
 (require 'project)
@@ -70,11 +85,10 @@
         ((staticcheck . t)
          (matcher . "CaseSensitive")))))
 
-(defcustom eglot-ignored-server-capabilites (list)
-  "LSP server capabilities that Eglot could use, but won't.
-You could add, for instance, the symbol
-`:documentHighlightProvider' to prevent automatic highlighting
-under cursor."
-  :type '(set
-          :tag "Tick the ones you're not interested in"
-          (const :tag "Documentation on hover" :hoverProvider)))
+(setq eglot-ignored-server-capabilites '(:documentHighlightProvider))
+
+(add-hook 'go-mode-hook
+          (lambda ()
+            (add-hook 'before-save-hook 'gofmt-before-save)
+            (setq tab-width 4)
+            (setq indent-tabs-mode 1)))
