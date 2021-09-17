@@ -5,26 +5,46 @@
 
 (menu-bar-mode -1)
 (tool-bar-mode -1)
-(fringe-mode -1)
+;; (fringe-mode 1)
 (toggle-scroll-bar -1)
 ;; (global-hl-line-mode 1)
 (setq scroll-step 1)
 (setq scroll-conservatively  10000)
+(blink-cursor-mode 0)
 
 (setq auto-save-default nil)
 (setq make-backup-files nil)
+
+(setq max-lisp-eval-depth 10000)
+(setq max-specpdl-size 10000)
+
+(add-to-list 'default-frame-alist '(background-color . "black"))
+(global-hl-line-mode 1)
+(set-face-attribute hl-line-face nil :underline t)
+(set-face-background 'hl-line "black")
+
+;; save recent opened file
+(recentf-mode 1)
+(setq recentf-max-menu-items 25)
+(setq recentf-max-saved-items 25)
+(global-set-key (kbd "C-x r") 'helm-recentf)
 
 ;; cl - Common Lisp Extension
 (require 'cl)
 
 ;; Add Packages
 (defvar my/packages '(
+  ;; Vim emu
   evil
+  ;; Helm
   helm
   helm-ag
-  eglot
+  ;; For code
+  company
+  lsp-mode
   go-mode
-  ) "Default packages")
+  exec-path-from-shell
+  ))
 
 (setq package-selected-packages my/packages)
 
@@ -40,55 +60,64 @@
       (when (not (package-installed-p pkg))
   (package-install pkg))))
 
-;; Find Executable Path on OS X
-;; when (memq window-system '(mac ns))
-;;  (exec-path-from-shell-initialize)
+(require 'exec-path-from-shell)
+;; Find Executable Path on OS X and Linux
+(when (memq window-system '(mac ns x))
+  (exec-path-from-shell-initialize))
 
 ;; Open some modes
 (evil-mode 1)
 
 ;; helm configuration
 (global-set-key (kbd "M-x") 'helm-M-x)
-(global-set-key (kbd "M-p") 'helm-find-files)
+(global-set-key (kbd "C-x f") 'helm-find-files)
+(global-set-key (kbd "C-x b") 'helm-buffers-list)
 (add-hook 'helm-after-initialize-hook
           (lambda()
             (define-key helm-map (kbd "TAB") #'helm-execute-persistent-action)
             (define-key helm-map (kbd "<tab>") #'helm-execute-persistent-action)
             (define-key helm-map (kbd "C-z") #'helm-select-action)
-            (define-key helm-buffer-map (kbd "ESC") 'helm-keyboard-quit)
-            (define-key helm-M-x-map (kbd "ESC") 'helm-keyboard-quit)
-            (define-key helm-find-files-map (kbd "ESC") 'helm-keyboard-quit)
-            (define-key helm-map (kbd "ESC") 'helm-keyboard-quit)))
+            ;; (define-key helm-M-x-map (kbd "ESC") 'helm-keyboard-quit)
+            ;; (define-key helm-buffer-map (kbd "ESC") 'helm-keyboard-quit)
+            ;; (define-key helm-find-files-map (kbd "ESC") 'helm-keyboard-quit)
+            ;; (define-key helm-map (kbd "ESC") 'helm-keyboard-quit)
+            ))
 
-;; xref configuration
-(global-set-key (kbd "M-<right>") 'xref-find-definitions)
-
-;; Load go-mode and Eglot
-(require 'project)
-
-(defun project-find-go-module (dir)
-  (when-let ((root (locate-dominating-file dir "go.mod")))
-    (cons 'go-module root)))
-
-(cl-defmethod project-root ((project (head go-module)))
-  (cdr project))
-
-(add-hook 'project-find-functions #'project-find-go-module)
-
+;; Golang
 (require 'go-mode)
-(require 'eglot)
-(add-hook 'go-mode-hook 'eglot-ensure)
+(require 'lsp-mode)
 
-;; configuring gopls
-(setq-default eglot-workspace-configuration
-    '((:gopls .
-        ((staticcheck . t)
-         (matcher . "CaseSensitive")))))
+(add-hook 'go-mode-hook #'lsp-deferred)
 
-(setq eglot-ignored-server-capabilites '(:documentHighlightProvider))
+;; Set up before-save hooks to format buffer and add/delete imports.
+;; Make sure you don't have other gofmt/goimports hooks enabled.
+(defun lsp-go-install-save-hooks ()
+  (add-hook 'before-save-hook #'lsp-format-buffer t t)
+  (add-hook 'before-save-hook #'lsp-organize-imports t t))
+(add-hook 'go-mode-hook #'lsp-go-install-save-hooks)
 
 (add-hook 'go-mode-hook
           (lambda ()
-            (add-hook 'before-save-hook 'gofmt-before-save)
             (setq tab-width 4)
             (setq indent-tabs-mode 1)))
+
+;; lsp mode color setting
+
+(defun lsp-headerline-face-conf ()
+  (set-face-foreground 'lsp-headerline-breadcrumb-deprecated-face "black")
+  (set-face-foreground 'lsp-headerline-breadcrumb-path-error-face "black")
+  (set-face-foreground 'lsp-headerline-breadcrumb-path-face "black")
+  (set-face-foreground 'lsp-headerline-breadcrumb-path-hint-face "black")
+  (set-face-foreground 'lsp-headerline-breadcrumb-path-info-face "black")
+  (set-face-foreground 'lsp-headerline-breadcrumb-path-warning-face "black")
+  (set-face-foreground 'lsp-headerline-breadcrumb-project-prefix-face "black")
+  (set-face-foreground 'lsp-headerline-breadcrumb-separator-face "black")
+  (set-face-foreground 'lsp-headerline-breadcrumb-symbols-error-face "black")
+  (set-face-foreground 'lsp-headerline-breadcrumb-symbols-face "black")
+  (set-face-foreground 'lsp-headerline-breadcrumb-symbols-hint-face "black")
+  (set-face-foreground 'lsp-headerline-breadcrumb-symbols-info-face "black")
+  (set-face-foreground 'lsp-headerline-breadcrumb-symbols-warning-face "black")
+  (set-face-foreground 'lsp-headerline-breadcrumb-unknown-project-prefix-face "black")
+  )
+
+(add-hook 'lsp-headerline-breadcrumb-mode-hook #'lsp-headerline-face-conf)
