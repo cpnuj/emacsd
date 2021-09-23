@@ -5,9 +5,7 @@
 
 (menu-bar-mode -1)
 (tool-bar-mode -1)
-;; (fringe-mode 1)
 (toggle-scroll-bar -1)
-;; (global-hl-line-mode 1)
 (setq scroll-step 1)
 (setq scroll-conservatively  10000)
 (blink-cursor-mode 0)
@@ -19,9 +17,8 @@
 (setq max-specpdl-size 10000)
 
 (add-to-list 'default-frame-alist '(background-color . "black"))
-(global-hl-line-mode 1)
-(set-face-attribute hl-line-face nil :underline t)
-(set-face-background 'hl-line "black")
+;; (set-face-attribute hl-line-face nil :underline t)
+;; (set-face-background 'hl-line "black")
 
 ;; save recent opened file
 (recentf-mode 1)
@@ -36,6 +33,7 @@
 (defvar my/packages '(
   ;; Vim emu
   evil
+  undo-fu
   ;; Helm
   helm
   helm-ag
@@ -43,6 +41,7 @@
   company
   lsp-mode
   go-mode
+  haskell-mode
   exec-path-from-shell
   ))
 
@@ -67,6 +66,7 @@
 
 ;; Open some modes
 (evil-mode 1)
+(evil-set-undo-system 'undo-fu)
 
 ;; helm configuration
 (global-set-key (kbd "M-x") 'helm-M-x)
@@ -99,7 +99,13 @@
 (add-hook 'go-mode-hook
           (lambda ()
             (setq tab-width 4)
-            (setq indent-tabs-mode 1)))
+	    (setq indent-tabs-mode 1)
+            ))
+
+;; lsp keybinding
+(add-hook 'lsp-mode-hook (lambda ()
+  (local-set-key (kbd "M-<right>") #'lsp-find-definition)
+  ))
 
 ;; lsp mode color setting
 
