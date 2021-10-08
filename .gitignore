@@ -1,5 +1,6 @@
 elpa/
 eshell/
 auto-save-list/
+transient/
 recentf
 .lsp-*

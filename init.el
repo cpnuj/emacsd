@@ -30,43 +30,52 @@
 (require 'cl)
 
 ;; Add Packages
-(defvar my/packages '(
-  ;; Vim emu
-  evil
-  undo-fu
-  ;; Helm
-  helm
-  helm-ag
-  ;; For code
-  company
-  lsp-mode
-  go-mode
-  haskell-mode
-  exec-path-from-shell
-  ))
+(defvar my/packages
+  '(;; Package control
+    use-package
+    ;; Vim emu
+    evil
+    undo-fu
+    ;; Helm
+    helm
+    helm-ag
+    ;; For code
+    company
+    flycheck
+    lsp-mode
+    go-mode
+    haskell-mode
+    exec-path-from-shell
+    ))
 
 (setq package-selected-packages my/packages)
 
 (defun my/packages-installed-p ()
-    (loop for pkg in my/packages
+  (loop for pkg in my/packages
         when (not (package-installed-p pkg)) do (return nil)
         finally (return t)))
 
 (unless (my/packages-installed-p)
-    (message "%s" "Refreshing package database...")
-    (package-refresh-contents)
-    (dolist (pkg my/packages)
-      (when (not (package-installed-p pkg))
-  (package-install pkg))))
+  (message "%s" "Refreshing package database...")
+  (package-refresh-contents)
+  (dolist (pkg my/packages)
+    (when (not (package-installed-p pkg))
+      (package-install pkg))))
 
 (require 'exec-path-from-shell)
 ;; Find Executable Path on OS X and Linux
 (when (memq window-system '(mac ns x))
   (exec-path-from-shell-initialize))
 
-;; Open some modes
-(evil-mode 1)
-(evil-set-undo-system 'undo-fu)
+;; evil mode
+(use-package evil
+  :ensure t
+  :init
+  (setq evil-want-integration t) ;; This is optional since it's already set to t by default.
+  (setq evil-want-keybinding nil)
+  :config
+  (evil-mode 1)
+  (evil-set-undo-system 'undo-fu))
 
 ;; helm configuration
 (global-set-key (kbd "M-x") 'helm-M-x)
@@ -77,10 +86,6 @@
             (define-key helm-map (kbd "TAB") #'helm-execute-persistent-action)
             (define-key helm-map (kbd "<tab>") #'helm-execute-persistent-action)
             (define-key helm-map (kbd "C-z") #'helm-select-action)
-            ;; (define-key helm-M-x-map (kbd "ESC") 'helm-keyboard-quit)
-            ;; (define-key helm-buffer-map (kbd "ESC") 'helm-keyboard-quit)
-            ;; (define-key helm-find-files-map (kbd "ESC") 'helm-keyboard-quit)
-            ;; (define-key helm-map (kbd "ESC") 'helm-keyboard-quit)
             ))
 
 ;; Golang
@@ -100,12 +105,18 @@
           (lambda ()
             (setq tab-width 4)
 	    (setq indent-tabs-mode 1)
+	    (show-paren-mode)
             ))
 
 ;; lsp keybinding
 (add-hook 'lsp-mode-hook (lambda ()
-  (local-set-key (kbd "M-<right>") #'lsp-find-definition)
-  ))
+			   (local-set-key (kbd "M-<right>") #'lsp-find-definition)
+			   ))
+
+;; lsp configure
+(add-hook 'lsp-mode-hook (lambda ()
+			   (setq lsp-enable-file-watchers nil)
+			   ))
 
 ;; lsp mode color setting
 
@@ -127,3 +138,7 @@
   )
 
 (add-hook 'lsp-headerline-breadcrumb-mode-hook #'lsp-headerline-face-conf)
+
+;; git
+(use-package magit
+  :ensure t)
