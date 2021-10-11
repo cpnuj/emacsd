@@ -1,6 +1,6 @@
 (require 'package)
-(setq package-archives '(("gnu"   . "http://mirrors.tuna.tsinghua.edu.cn/elpa/gnu/")
-                         ("melpa" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")))
+(setq package-archives '(("gnu"   . "http://elpa.emacs-china.org/gnu/")
+                         ("melpa" . "http://elpa.emacs-china.org/melpa/")))
 (package-initialize)
 
 (menu-bar-mode -1)
@@ -16,7 +16,7 @@
 (setq max-lisp-eval-depth 10000)
 (setq max-specpdl-size 10000)
 
-(add-to-list 'default-frame-alist '(background-color . "black"))
+;; (add-to-list 'default-frame-alist '(background-color . "black"))
 ;; (set-face-attribute hl-line-face nil :underline t)
 ;; (set-face-background 'hl-line "black")
 
@@ -33,6 +33,8 @@
 (defvar my/packages
   '(;; Package control
     use-package
+    ;; colorful
+    doom-themes
     ;; Vim emu
     evil
     undo-fu
@@ -77,6 +79,12 @@
   (evil-mode 1)
   (evil-set-undo-system 'undo-fu))
 
+(use-package evil-collection
+  :after evil
+  :ensure t
+  :config
+  (evil-collection-init))
+
 ;; helm configuration
 (global-set-key (kbd "M-x") 'helm-M-x)
 (global-set-key (kbd "C-x f") 'helm-find-files)
@@ -108,6 +116,9 @@
 	    (show-paren-mode)
             ))
 
+;; C mode
+(add-hook 'c-mode-hook #'lsp-deferred)
+
 ;; lsp keybinding
 (add-hook 'lsp-mode-hook (lambda ()
 			   (local-set-key (kbd "M-<right>") #'lsp-find-definition)
@@ -118,27 +129,8 @@
 			   (setq lsp-enable-file-watchers nil)
 			   ))
 
-;; lsp mode color setting
-
-(defun lsp-headerline-face-conf ()
-  (set-face-foreground 'lsp-headerline-breadcrumb-deprecated-face "black")
-  (set-face-foreground 'lsp-headerline-breadcrumb-path-error-face "black")
-  (set-face-foreground 'lsp-headerline-breadcrumb-path-face "black")
-  (set-face-foreground 'lsp-headerline-breadcrumb-path-hint-face "black")
-  (set-face-foreground 'lsp-headerline-breadcrumb-path-info-face "black")
-  (set-face-foreground 'lsp-headerline-breadcrumb-path-warning-face "black")
-  (set-face-foreground 'lsp-headerline-breadcrumb-project-prefix-face "black")
-  (set-face-foreground 'lsp-headerline-breadcrumb-separator-face "black")
-  (set-face-foreground 'lsp-headerline-breadcrumb-symbols-error-face "black")
-  (set-face-foreground 'lsp-headerline-breadcrumb-symbols-face "black")
-  (set-face-foreground 'lsp-headerline-breadcrumb-symbols-hint-face "black")
-  (set-face-foreground 'lsp-headerline-breadcrumb-symbols-info-face "black")
-  (set-face-foreground 'lsp-headerline-breadcrumb-symbols-warning-face "black")
-  (set-face-foreground 'lsp-headerline-breadcrumb-unknown-project-prefix-face "black")
-  )
-
-(add-hook 'lsp-headerline-breadcrumb-mode-hook #'lsp-headerline-face-conf)
-
 ;; git
 (use-package magit
   :ensure t)
+
+(load-theme 'doom-one-light t)
