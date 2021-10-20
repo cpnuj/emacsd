@@ -4,3 +4,8 @@ auto-save-list/
 transient/
 recentf
 .lsp-*
+.dap-*
+.mc-lists.el
+quelpa/
+url/
+.extension/
