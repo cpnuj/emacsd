@@ -51,6 +51,9 @@
   :config
   (evil-collection-init))
 
+(use-package helm-ag
+  :ensure t)
+
 (use-package helm
   :ensure t
   :bind
@@ -66,8 +69,41 @@
     (define-key helm-map (kbd "C-z") #'helm-select-action)))
 
 ;; git
+(use-package vdiff-magit
+  :ensure t
+  :config
+  (progn
+    (setq vdiff-disable-folding 1)
+    (setq vdiff-auto-refine 1)
+    (bind-key "C-x h" 'vdiff-hydra/body vdiff-mode-map)
+    ))
+
 (use-package magit
-  :ensure t)
+  :ensure t
+  :config
+  (progn
+    (define-key magit-mode-map "e" 'vdiff-magit-dwim)
+    (define-key magit-mode-map "E" 'vdiff-magit)
+    (transient-suffix-put 'magit-dispatch "e" :description "vdiff (dwim)")
+    (transient-suffix-put 'magit-dispatch "e" :command 'vdiff-magit-dwim)
+    (transient-suffix-put 'magit-dispatch "E" :description "vdiff")
+    (transient-suffix-put 'magit-dispatch "E" :command 'vdiff-magit)
+    ;; This flag will default to using ediff for merges.
+    ;; (setq vdiff-magit-use-ediff-for-merges nil)
+
+    ;; Whether vdiff-magit-dwim runs show variants on hunks.  If non-nil,
+    ;; vdiff-magit-show-staged or vdiff-magit-show-unstaged are called based on what
+    ;; section the hunk is in.  Otherwise, vdiff-magit-dwim runs vdiff-magit-stage
+    ;; when point is on an uncommitted hunk.
+    ;; (setq vdiff-magit-dwim-show-on-hunks nil)
+
+    ;; Whether vdiff-magit-show-stash shows the state of the index.
+    ;; (setq vdiff-magit-show-stash-with-index t)
+
+    ;; Only use two buffers (working file and index) for vdiff-magit-stage
+    (setq vdiff-magit-stage-is-2way 1)
+    )
+)
   
 ;; GO
 
@@ -120,7 +156,9 @@
 (use-package dap-mode
   :defer t
   :ensure t
-  :bind (("C-x h" . dap-hydra))
-  :config
+  ;; :bind (("C-x h" . dap-hydra))
+  :config (bind-key "C-x h" 'dap-hydra dap-mode-map)
   (require 'dap-go)
   (require 'dap-hydra))
+
+(load-theme 'doom-dark+ t)
